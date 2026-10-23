@@ -1,0 +1,22 @@
+
+{% extends "layout.html" %}
+
+{% block container %}
+
+<div class="col-12">
+
+    <h1>Materia PWA</h1>
+
+    <h2>IEVN-1003 JINJA2</h2>
+
+    <h3>{{ titulo }}</h3>
+
+    <ul>
+        {% for nom in listado %}
+        <li>{{ nom }}</li>
+        {% endfor %}
+    </ul>
+
+</div>
+
+{% endblock %}

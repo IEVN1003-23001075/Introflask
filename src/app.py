@@ -1,37 +1,35 @@
-from flask import Flask
+
+from flask import Flask, jsonify, request
+from flask_mysqldb import MySQL
+from flask_cors import CORS
+
+from config import config
 
 app = Flask(__name__)
+CORS(app)
+con = MySQL(app)
+
+@app.route("/alumnos", methods=['GET'])
+def lista_alumnos():
+    try:
+        cursor = con.connection.cursor()
+        sql = "SELECT * FROM alumnos"
+        cursor.execute(sql)
+        datos = cursor.fetchall()
+        alumnos = []
+        for fila in datos:
+            alumno = {"matricula": fila[0], "nombre": fila[1], "Apaterno": fila[2], "Amaterno": fila[3], "Correo": fila[4]}
+            alumnos.append(alumno)
+        return jsonify({"alumnos": alumnos, "mensaje": "Lista de alumnos", "exito": True})
+    finally:
+        if cursor:
+            cursor.close()
 
 
-@app.route("/")
-def index():
-    return "<h1>Hola mundo</h1>"
-
-
-@app.route("/hola")
-def hola():
-    return "<h1>Hola PWA - IEVN1003</h1>"
-
-
-@app.route("/user/<string:nom>")
-def user(nom):
-    return "Hola, {}".format(nom)
-
-
-@app.route("/numero/<int:n>")
-def numero(n):
-    return "Numero: {}".format(n)
-
-
-@app.route("/user/<int:id>/<string:username>")
-def username(id, username):
-    return "ID: {} nombre: {}".format(id, username)
-
-
-@app.route("/suma/<float:n1>/<float:n2>")
-def suma(n1, n2):
-    return "La suma es: {}".format(n1 + n2)
-
+def pagina_no_encontrada(error):
+    return "<h1> pagina no encontrada </h1>", 404
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.config.from_object(config['development'])
+    app.register_error_handler(404, pagina_no_encontrada)
+    app.run(host='0.0.0.0', port=5000)
