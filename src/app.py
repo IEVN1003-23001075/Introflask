@@ -1,35 +1,30 @@
-
-from flask import Flask, jsonify, request
-from flask_mysqldb import MySQL
+from flask import Flask
 from flask_cors import CORS
 
+from blueprints.alumnos.routes import alumnos_bp
+from blueprints.maestros.routes import maestros_bp
+
+from database import mysql
 from config import config
 
 app = Flask(__name__)
-CORS(app)
-con = MySQL(app)
 
-@app.route("/alumnos", methods=['GET'])
-def lista_alumnos():
-    try:
-        cursor = con.connection.cursor()
-        sql = "SELECT * FROM alumnos"
-        cursor.execute(sql)
-        datos = cursor.fetchall()
-        alumnos = []
-        for fila in datos:
-            alumno = {"matricula": fila[0], "nombre": fila[1], "Apaterno": fila[2], "Amaterno": fila[3], "Correo": fila[4]}
-            alumnos.append(alumno)
-        return jsonify({"alumnos": alumnos, "mensaje": "Lista de alumnos", "exito": True})
-    finally:
-        if cursor:
-            cursor.close()
+app.config.from_object(config['development'])
+
+mysql.init_app(app)
+
+CORS(app)
+
+app.register_blueprint(alumnos_bp)
+app.register_blueprint(maestros_bp)
 
 
 def pagina_no_encontrada(error):
-    return "<h1> pagina no encontrada </h1>", 404
+    return "<h1>Pagina no encontrada</h1>", 404
+
+
+app.register_error_handler(404, pagina_no_encontrada)
+
 
 if __name__ == "__main__":
-    app.config.from_object(config['development'])
-    app.register_error_handler(404, pagina_no_encontrada)
     app.run(host='0.0.0.0', port=5000)
